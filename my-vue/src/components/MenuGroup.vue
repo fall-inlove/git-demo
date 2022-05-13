@@ -10,7 +10,7 @@
         text-color="#fff"
         font-size:20px
         active-text-color="#0ff"
-        unique-opened="true"
+        :unique-opened="true"
         router
       >
         <el-submenu index="1">
