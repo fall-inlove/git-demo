@@ -21,9 +21,6 @@
           <el-button type="primary" size="small" @click="handleClick(scope.row)"
             >分配</el-button
           >
-          <el-button type="primary" size="small" @click="handleClick(scope.row)"
-            >分配2</el-button
-          >
         </template>
       </el-table-column>
     </el-table>
