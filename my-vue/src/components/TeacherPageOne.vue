@@ -1,6 +1,5 @@
 <template>
   <div class="contarin">
-    <div></div>
     <el-table
       :data="tableData"
       border
