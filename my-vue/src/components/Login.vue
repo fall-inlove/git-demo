@@ -195,8 +195,8 @@ export default {
   position: relative;
 }
 .card {
-  width: 28vw;
-  height: 34vh;
+  width: 440px;
+  height: 260px;
   background-color: rgba(255, 255, 255, 0.8);
   position: relative;
   border-radius: 10px;
@@ -248,11 +248,10 @@ export default {
   position: absolute;
   top: 14%;
   left: 19.5%;
-  font-size: 15px;
 }
 .pass {
   position: absolute;
-  top: 35%;
+  top: 36%;
   left: 19.5%;
 }
 .warnDown {
