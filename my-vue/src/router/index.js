@@ -12,7 +12,7 @@ import Main from '@/components/MainPage'
 import Message from '@/components/MyMessage'
 import TeacherPageOne from '@/components/TeacherPageOne'
 import TeacherPageTwo from '@/components/TeacherPageTwo'
-
+import StudentPageOne from '@/components/StudentPageOne'
 const router =  new Router({
     //mode:'history',
     routes: [
@@ -38,6 +38,10 @@ const router =  new Router({
                 {
                     path: 'teachertwo',
                     component: TeacherPageTwo,
+                },
+                {
+                    path: 'studentone',
+                    component: StudentPageOne,
                 },
             ]
         }

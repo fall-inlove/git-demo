@@ -13,7 +13,7 @@
         :unique-opened="true"
         router
       >
-        <el-submenu index="1">
+        <el-submenu index="1" v-if="!isStudent">
           <template slot="title">
             <i class="el-icon-location backgroup"></i>
             <span>老师界面</span>
@@ -23,12 +23,12 @@
           <el-menu-item index="1-3">选项3</el-menu-item>
           <el-menu-item index="1-4">选项4</el-menu-item>
         </el-submenu>
-        <el-submenu index="2">
+        <el-submenu index="2" v-if="isStudent">
           <template slot="title">
             <i class="el-icon-location backgroup"></i>
             <span>学生界面</span>
           </template>
-          <el-menu-item index="2-1">任务分配</el-menu-item>
+          <el-menu-item index="/main/studentone">我的小组</el-menu-item>
           <el-menu-item index="2-2">我的分配</el-menu-item>
           <el-menu-item index="2-3">选项3</el-menu-item>
           <el-menu-item index="2-4">选项4</el-menu-item>
@@ -52,6 +52,7 @@ export default {
   data() {
     return {
       active: "/main/teacherone",
+      isStudent: false,
     };
   },
   methods: {
@@ -63,7 +64,18 @@ export default {
     },
   },
   mounted() {
-    this.$router.push(this.active);
+    if (localStorage.getItem("people") === "true") {
+      this.isStudent = true;
+    }
+    console.log(this.isStudent);
+    this.$nextTick(function () {
+      if (!this.isStudent) {
+        this.active = "/main/teacherone";
+      } else {
+        this.active = "/main/studentone";
+      }
+      this.$router.push(this.active);
+    });
   },
 };
 </script>
