@@ -9,20 +9,27 @@
       >
       <span
         >小组最大人数:
-        <el-tag v-if="!isShow" mode="out-in">{{ maxNumber }}人</el-tag>
+        <el-tag v-if="!isShow">{{ maxNumber }}人</el-tag>
         <input
           v-else
           type="number"
           class="input"
-          mode="out-in"
           ref="inputNumber"
           v-model.number="inputs"
           @keydown.enter="changeMax"
+          @blur="changeMax"
         />
       </span>
-      <button class="button" @click="change" v-show="!isShow">编辑</button>
+      <el-button
+        class="button"
+        @click="change"
+        v-show="!isShow"
+        icon="el-icon-edit"
+      >
+        编辑
+      </el-button>
     </div>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table :data="tableData" style="width: 97%" class="contain">
       <el-table-column type="expand">
         <template slot-scope="props">
           <el-form label-position="left" inline class="demo-table-expand">
@@ -34,20 +41,48 @@
       </el-table-column>
       <el-table-column type="index" label="编号" width="100"></el-table-column>
       <el-table-column label="题目名" prop="name"> </el-table-column>
-      <el-table-column fixed="right" label="操作" width="300">
+      <el-table-column width="400" align="center">
+        <template slot="header">
+          <el-button
+            type="primary"
+            icon="el-icon-plus"
+            size="mini"
+            @click="dialogVisible = true"
+            >添加课题</el-button
+          >
+        </template>
         <template slot-scope="scope">
-          <el-button type="primary" size="mini" @click="handleEdit(scope.$index, scope.row)"
+          <el-button
+            type="primary"
+            size="mini"
+            icon="el-icon-edit"
+            @click="handleEdit(scope.row)"
             >编辑</el-button
           >
           <el-button
             size="mini"
             type="danger"
+            icon="el-icon-delete"
             @click="handleDelete(scope.$index, scope.row)"
             >删除</el-button
           >
-        </template>
-      </el-table-column>
-    </el-table>
+        </template></el-table-column
+      ></el-table
+    >
+    <el-dialog title="编辑课题" :visible.sync="dialogVisible" width="50%">
+      课题名称:<el-input v-model="topic.name" placeholder="请输入课题标题" />
+      课题内容:<el-input
+        type="textarea"
+        :rows="10"
+        placeholder="请输入课题内容"
+        v-model="topic.content"
+      >
+      </el-input>
+      <div class="dialog-bottom">
+        <el-button type="warning" @click="clearContent">清除内容</el-button>
+        <el-button type="primary">确认修改</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -58,17 +93,25 @@ export default {
     return {
       date: "2022第二学期",
       classes: "192015",
+      dialogVisible: false,
       inputs: "",
       isShow: false,
       maxNumber: 5,
+      topic: {
+        id: "",
+        name: "",
+        content: "",
+      },
       tableData: [
         {
-          name: "王小虎",
-          content:"王小虎是一只猫",
+          id: "1",
+          name: "课设管理系统",
+          content: "王小虎是一只猫",
         },
         {
-          name: "王小虎",
-          content:"王小虎是一只猫",
+          id: "2",
+          name: "医院排队叫号系统",
+          content: "王小虎是一只猫",
         },
       ],
     };
@@ -108,32 +151,56 @@ export default {
         this.isShow = !this.isShow;
       }
     },
+    handleEdit(row) {
+      this.topic = { ...row };
+      this.dialogVisible = true;
+      console.log(this.topic);
+    },
+    clearContent() {
+      this.topic = {};
+    },
   },
   mounted() {},
 };
 </script>
 
 <style scoped>
+.contain {
+  width: auto;
+  height: 550px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+}
+.contain:hover {
+  box-shadow: 2px 2px 2px #ccc, -2px -2px 2px #ccc;
+}
 span {
-  margin: 1vh 3vw 3vh 3vw;
+  display: inline-block;
+  margin: 1vh 3vw 1vh 3vw;
 }
 .button {
   background-color: rgb(64, 158, 255);
   color: #fff;
   border: none;
   font-size: 15px;
-  width: 80px;
   height: 38px;
   border-radius: 5px;
 }
 .button:hover {
-  background-color: rgb(120, 177, 255);
+  color: #fff;
+  background-color: rgb(74, 148, 245);
 }
 .input {
   height: 25px;
   width: 150px;
   margin-left: 50px;
   padding: 0 0 0 5px;
+}
+.input:focus {
+  outline: none;
+  border: 0.5px solid rgb(64, 158, 255);
 }
 .demo-table-expand {
   font-size: 0;
@@ -146,5 +213,10 @@ span {
   margin-right: 0;
   margin-bottom: 0;
   width: 50%;
+}
+.dialog-bottom {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
 }
 </style>

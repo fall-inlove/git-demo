@@ -11,12 +11,16 @@
         type="index"
         label="编号"
         width="100"
+        height="500px"
       ></el-table-column>
-      <el-table-column prop="class" label="班级" width="200"></el-table-column>
+      <el-table-column prop="class" label="班级" width="150"></el-table-column>
       <el-table-column label="时间" width="250">{{ time }}</el-table-column>
-      <el-table-column prop="number" label="人数" width="200"></el-table-column>
-      <el-table-column prop="object" label="科目" width="220"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="200">
+      <el-table-column prop="number" label="人数" width="150"></el-table-column>
+      <el-table-column prop="object" label="科目" width="200"></el-table-column>
+      <el-table-column fixed="right" width="250" align="center">
+        <template slot="header">
+          <el-input v-model="searchInput" placeholder="输入关键字搜索" />
+        </template>
         <template slot-scope="scope">
           <el-button type="primary" size="small" @click="handleClick(scope.row)"
             >分配</el-button
@@ -106,6 +110,7 @@ export default {
       currentClass: {},
       time: "",
       dialogVisible: false,
+      searchInput: "",
     };
   },
   methods: {
@@ -146,8 +151,15 @@ export default {
 
 <style scoped>
 .contarin {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: 600px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+}
+.contarin:hover {
+  box-shadow: 2px 2px 2px #ccc, -2px -2px 2px #ccc;
 }
 .contarin .bottom {
   margin-top: 2vh;

@@ -34,17 +34,18 @@
       <el-table
         :data="tableDatas"
         border
+        @select-all="selectAll"
         ref="multipleTable"
         @selection-change="handleSelectionChange"
         style="width: 100%; height: 50%"
         max-height="250px"
+        :default-sort="{ prop: 'class', order: 'ascending' }"
       >
-        :default-sort="{ prop: 'class', order: 'ascending' }" >
-        <el-table-column type="selection" width="55"> </el-table-column>
+        <el-table-column type="selection" width="55" :select="selects">
+        </el-table-column>
         <el-table-column prop="id" label="学号" width="200"> </el-table-column>
         <el-table-column prop="name" label="姓名" width="200">
         </el-table-column>
-
         <el-table-column fixed="right" label="操作" width="200">
           <template slot-scope="scope">
             <el-button
@@ -57,7 +58,9 @@
         </el-table-column>
       </el-table>
       <div class="table-bottom">
-        <span style="margin-left: 10px">已选{{ nums }}人</span>
+        <span style="margin-left: 10px"
+          >已选{{ nums }}人/最大可选{{ maxNumber - 1 }}</span
+        >
         <el-button type="primary">添加</el-button>
       </div>
     </el-dialog>
@@ -117,6 +120,7 @@ export default {
       dialogVisible: false,
       findGroup: "",
       nums: 0,
+      maxNumber: 5,
       multipleSelection: [],
     };
   },
@@ -128,6 +132,31 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = val;
       this.nums = this.multipleSelection.length;
+      console.log(this.multipleSelection);
+    },
+    selectAll() {
+      if (this.tableDatas.length > this.maxNumber) {
+        this.$message({
+          showClose: true,
+          duration: 2000,
+          message: "你不能选择超过" + (this.maxNumber - 1) + "人",
+          type: "warning",
+        });
+        this.tableDatas.forEach((row) => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      }
+    },
+    selects() {
+      if (this.nums > this.maxNumber - 1) {
+        this.$message({
+          showClose: true,
+          duration: 2000,
+          message: "你不能选择超过" + (this.maxNumber - 1) + "人",
+          type: "warning",
+        });
+        return false;
+      }
     },
   },
 };
