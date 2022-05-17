@@ -41,8 +41,7 @@
         max-height="250px"
         :default-sort="{ prop: 'class', order: 'ascending' }"
       >
-        <el-table-column type="selection" width="55" :select="selects">
-        </el-table-column>
+        <el-table-column type="selection" width="55"> </el-table-column>
         <el-table-column prop="id" label="学号" width="200"> </el-table-column>
         <el-table-column prop="name" label="姓名" width="200">
         </el-table-column>
@@ -91,27 +90,27 @@ export default {
       ],
       tableDatas: [
         {
-          name: "张三",
+          name: "张1",
           id: "123456789",
         },
         {
-          name: "李四",
+          name: "李2",
           id: "987654321",
         },
         {
-          name: "王五",
+          name: "王3",
           id: "87654321",
         },
         {
-          name: "张三",
+          name: "张4",
           id: "123456789",
         },
         {
-          name: "李四",
+          name: "李5",
           id: "987654321",
         },
         {
-          name: "王五",
+          name: "王6",
           id: "87654321",
         },
       ],
@@ -132,7 +131,19 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = val;
       this.nums = this.multipleSelection.length;
-      console.log(this.multipleSelection);
+      if (this.nums > this.maxNumber - 1) {
+        this.$message({
+          showClose: true,
+          duration: 2000,
+          message: "你不能选择超过" + (this.maxNumber - 1) + "人",
+          type: "warning",
+        });
+        this.$refs.multipleTable.toggleRowSelection(
+          this.multipleSelection[this.nums - 1]
+        );
+        //this.multipleSelection.pop();
+        console.log(this.multipleSelection);
+      }
     },
     selectAll() {
       if (this.tableDatas.length > this.maxNumber) {
@@ -143,19 +154,9 @@ export default {
           type: "warning",
         });
         this.tableDatas.forEach((row) => {
+          //console.log(row);
           this.$refs.multipleTable.toggleRowSelection(row);
         });
-      }
-    },
-    selects() {
-      if (this.nums > this.maxNumber - 1) {
-        this.$message({
-          showClose: true,
-          duration: 2000,
-          message: "你不能选择超过" + (this.maxNumber - 1) + "人",
-          type: "warning",
-        });
-        return false;
       }
     },
   },
