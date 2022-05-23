@@ -18,13 +18,12 @@
                 <span>姓名:</span><span>{{ user.name }}</span>
               </div>
               <div class="mymessage">
-                <span>班级:</span><span>{{ user.class }}</span>
-              </div>
-              <div class="mymessage" v-show="user.group == null">
-                <span>小组:</span><span>未加入小组</span>
-              </div>
-              <div class="mymessage" v-show="!user.group == null">
-                <span>小组:</span><span>{{ user.group }}</span>
+                <span v-if="!status"
+                  >身份:<span style="margin-left: 30px">老师</span></span
+                >
+                <span v-else
+                  >身份:<span style="margin-left: 30px">学生</span></span
+                >
               </div>
             </div>
           </el-tab-pane>
@@ -71,7 +70,10 @@
                 v-model="password2"
                 show-password
                 style="width: 30vw"
-              ></el-input><span style="color:red;margin-left:10px;">*密码必须在8-16位之间,区分大小写</span>
+              ></el-input
+              ><span style="color: red; margin-left: 10px"
+                >*密码必须在8-16位之间,区分大小写</span
+              >
               <br />
               <span class="span">确认新密码</span>
               <el-input
@@ -106,7 +108,6 @@ export default {
       password1: "",
       password2: "",
       password3: "",
-      //defaultImg: 'this.src="' + require("../assets/images/onerror.png") + '";',
       user: {
         imageUrl: require("../assets/images/women.png"),
         name: "赵子龙",
@@ -115,6 +116,7 @@ export default {
         class: "192015",
         group: null,
       },
+      status: "",
     };
   },
   methods: {
@@ -153,66 +155,65 @@ export default {
       img.onerror = null;
     },
     changePassword() {
-      if(this.password1 == ""){
+      if (this.password1 == "") {
         this.$message({
           duration: 1500,
           message: "请先输入原密码",
           type: "warning",
         });
-      }else if(this.password2 == ""){
+      } else if (this.password2 == "") {
         this.$message({
           duration: 1500,
           message: "请先输入新密码",
           type: "warning",
         });
-      }else if(this.password3 == ""){
+      } else if (this.password3 == "") {
         this.$message({
           duration: 1500,
           message: "请再次输入新密码",
           type: "warning",
         });
-      }else if(this.password1 != this.user.password){
+      } else if (this.password1 != this.user.password) {
         this.$message({
           duration: 1500,
           message: "原密码错误！请重新输入",
           type: "error",
         });
-        this.password1 = this.password2 =this.password3 = "";
-      }else if(this.password2.length < 8 || this.password2.length > 16){
+        this.password1 = this.password2 = this.password3 = "";
+      } else if (this.password2.length < 8 || this.password2.length > 16) {
         this.$message({
           duration: 1500,
           message: "新密码的长度必须在8-16位之间,请重新输入。",
           type: "error",
         });
-        this.password1 = this.password2 =this.password3 = "";
-      }else if(this.password2 != this.password3){
+        this.password1 = this.password2 = this.password3 = "";
+      } else if (this.password2 != this.password3) {
         this.$message({
           duration: 1500,
           message: "两次输入的新密码不一致，请重新输入",
           type: "error",
         });
-        this.password1 = this.password2 =this.password3 = "";
-      }else if(this.password1 == this.password2){
+        this.password1 = this.password2 = this.password3 = "";
+      } else if (this.password1 == this.password2) {
         this.$message({
           duration: 1500,
           message: "新密码不能与旧密码相同,请重新输入",
           type: "success",
         });
-        this.password1 = this.password2 =this.password3 = "";
-      }else{
+        this.password1 = this.password2 = this.password3 = "";
+      } else {
         this.$message({
           duration: 1500,
           message: "密码修改成功,请重新登录。",
           type: "success",
         });
         sessionStorage.removeItem("user");
-        this.$router.push({path:"/"});
+        this.$router.push({ path: "/" });
       }
-
-
-
-
     },
+  },
+  mounted() {
+    this.status = JSON.parse(localStorage.getItem("people")); //true为学生，false为老师
   },
 };
 </script>
@@ -268,9 +269,9 @@ export default {
 .span {
   display: inline-block;
   width: 6vw;
-  text-align-last: justify; 
+  text-align-last: justify;
   line-height: 3vh;
   margin-top: 30px;
-  margin-right:20px;
+  margin-right: 20px;
 }
 </style>

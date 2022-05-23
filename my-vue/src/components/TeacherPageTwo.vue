@@ -91,7 +91,7 @@ export default {
   name: "TeacherPageTwo",
   data() {
     return {
-      date: "2022第二学期",
+      date: "",
       classes: "192015",
       dialogVisible: false,
       inputs: "",
@@ -183,8 +183,20 @@ export default {
     clearContent() {
       this.topic = {};
     },
+    getTime() {
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      if (month > 3 && month < 9) {
+        this.date = year + "-" + (year + 1) + "第一学期";
+      } else {
+        this.date = year - 1 + "-" + year + "第二学期";
+      }
+    },
   },
-  mounted() {},
+  mounted() {
+    this.getTime();
+  },
 };
 </script>
 

@@ -60,7 +60,7 @@ export default {
 <style scoped>
 .contrain {
   width: auto;
-  height: 600px;
+  height: 500px;
   border-radius: 5px;
   border: 1px solid #ccc;
   padding: 10px;
