@@ -12,8 +12,10 @@ import Main from "@/components/MainPage";
 import Message from "@/components/MyMessage";
 import TeacherPageOne from "@/components/TeacherPageOne";
 import TeacherPageTwo from "@/components/TeacherPageTwo";
+import TeacherPageThree from "@/components/TeacherPageThree";
 import StudentPageOne from "@/components/StudentPageOne";
 import StudentPageTwo from "@/components/StudentPageTwo";
+import StudentPageThree from "@/components/StudentPageThree";
 const router = new Router({
   //mode:'history',
   routes: [
@@ -41,12 +43,20 @@ const router = new Router({
           component: TeacherPageTwo,
         },
         {
+          path: "teacherthree",
+          component: TeacherPageThree,
+        },
+        {
           path: "studentone",
           component: StudentPageOne,
         },
         {
           path: "studenttwo",
           component: StudentPageTwo,
+        },
+        {
+          path: "studentthree",
+          component: StudentPageThree,
         },
       ],
     },

@@ -19,8 +19,8 @@
             <span>老师界面</span>
           </template>
           <el-menu-item index="/main/teacherone">任务分配</el-menu-item>
-          <el-menu-item index="/main/teachertwo">我的分配</el-menu-item>
-          <el-menu-item index="1-3">选项3</el-menu-item>
+          <el-menu-item index="/main/teachertwo">我的课题</el-menu-item>
+          <el-menu-item index="/main/teacherthree">我的班级</el-menu-item>
           <el-menu-item index="1-4">选项4</el-menu-item>
         </el-submenu>
         <el-submenu index="2" v-show="isStudent">
@@ -29,7 +29,7 @@
             <span>学生界面</span>
           </template>
           <el-menu-item index="/main/studentone">我的小组</el-menu-item>
-          <el-menu-item index="2-2">我的分配</el-menu-item>
+          <el-menu-item index="/main/studentthree">我的课题</el-menu-item>
           <el-menu-item index="2-3">选项3</el-menu-item>
           <el-menu-item index="2-4">选项4</el-menu-item>
         </el-submenu>

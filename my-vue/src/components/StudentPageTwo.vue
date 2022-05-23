@@ -1,10 +1,18 @@
 <template>
   <div class="contrain">
-    <el-table :data="tableData" style="width: 97%" class="contain">
+    <el-table
+      :data="tableData"
+      style="width: 97%"
+      class="contain"
+      max-height="500px"
+    >
       <el-table-column type="expand">
         <template slot-scope="props">
           <el-form label-position="left" inline class="demo-table-expand">
-            <el-form-item label="课题内容:">
+            <el-form-item
+              label="课题内容:"
+              style="overflow: auto; width: 100%; height: 150px"
+            >
               <span>{{ props.row.content }}</span>
             </el-form-item>
           </el-form>
@@ -52,7 +60,7 @@ export default {
 <style scoped>
 .contrain {
   width: auto;
-  height: 500px;
+  height: 600px;
   border-radius: 5px;
   border: 1px solid #ccc;
   padding: 10px;
