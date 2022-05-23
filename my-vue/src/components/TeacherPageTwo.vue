@@ -118,7 +118,7 @@ export default {
   },
   methods: {
     change() {
-      this.isShow = !this.isShow;
+      this.isShow = true;
       this.inputs = this.maxNumber;
       this.$nextTick(function () {
         this.$refs.inputNumber.focus();
@@ -128,33 +128,57 @@ export default {
       if (this.inputs === "") {
         this.$message({
           showClose: true,
-          message: "请先输入有效数字",
+          message: "输入不能为空！",
           duration: 1500,
           type: "error",
         });
       } else if (this.inputs < 3) {
         this.$message({
           showClose: true,
-          message: "小组人数不能小于3人",
+          message: "小组人数最小不能小于3人",
           duration: 1500,
           type: "error",
         });
       } else if (this.inputs > 8) {
         this.$message({
           showClose: true,
-          message: "小组人数不能大于8人",
+          message: "小组人数最大不能大于8人",
           duration: 1500,
           type: "error",
         });
       } else {
         this.maxNumber = this.inputs;
-        this.isShow = !this.isShow;
+        this.isShow = false;
       }
     },
     handleEdit(row) {
       this.topic = { ...row };
       this.dialogVisible = true;
       console.log(this.topic);
+    },
+    handleDelete(row) {
+      this.$confirm("确定删除吗？", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          console.log(row);
+          this.$message({
+            type: "success",
+            showClose: true,
+            duration: 1500,
+            message: "删除成功！",
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "error",
+            showClose: true,
+            duration: 1500,
+            message: "已取消删除！",
+          });
+        });
     },
     clearContent() {
       this.topic = {};
