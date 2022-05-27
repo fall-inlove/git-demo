@@ -43,11 +43,7 @@
       <el-table-column label="题目名" prop="name"> </el-table-column>
       <el-table-column width="400" align="center">
         <template slot="header">
-          <el-button
-            type="primary"
-            icon="el-icon-plus"
-            size="mini"
-            @click="dialogVisible = true"
+          <el-button type="primary" icon="el-icon-plus" size="mini" @click="add"
             >添加课题</el-button
           >
         </template>
@@ -63,13 +59,13 @@
             size="mini"
             type="danger"
             icon="el-icon-delete"
-            @click="handleDelete(scope.$index, scope.row)"
+            @click="handleDelete(scope.row)"
             >删除</el-button
           >
         </template></el-table-column
       ></el-table
     >
-    <el-dialog title="编辑课题" :visible.sync="dialogVisible" width="50%">
+    <el-dialog title="添加课题" :visible.sync="dialogVisible" width="50%">
       课题名称:<el-input v-model="topic.name" placeholder="请输入课题标题" />
       课题内容:<el-input
         type="textarea"
@@ -80,7 +76,21 @@
       </el-input>
       <div class="dialog-bottom">
         <el-button type="warning" @click="clearContent">清除内容</el-button>
-        <el-button type="primary">确认修改</el-button>
+        <el-button type="primary" @click="addTopic">确认添加</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="编辑课题" :visible.sync="dialogVisible1" width="50%">
+      课题名称:<el-input v-model="topic.name" placeholder="请输入课题标题" />
+      课题内容:<el-input
+        type="textarea"
+        :rows="10"
+        placeholder="请输入课题内容"
+        v-model="topic.content"
+      >
+      </el-input>
+      <div class="dialog-bottom">
+        <el-button type="warning" @click="clearContent">清除内容</el-button>
+        <el-button type="primary" @click="changeTopic">确认修改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -92,36 +102,53 @@ export default {
   data() {
     return {
       date: "",
-      classes: "192015",
+      classes: "未分配",
       dialogVisible: false,
+      dialogVisible1: false,
       inputs: "",
       isShow: false,
-      maxNumber: 5,
+      canAdd: true,
+      maxNumber: 0,
       topic: {
         id: "",
         name: "",
         content: "",
       },
-      tableData: [
-        {
-          id: "1",
-          name: "课设管理系统",
-          content: "王小虎是一只猫",
-        },
-        {
-          id: "2",
-          name: "医院排队叫号系统",
-          content: "王小虎是一只猫",
-        },
-      ],
+      tableData: [],
     };
   },
   methods: {
     change() {
-      this.isShow = true;
-      this.inputs = this.maxNumber;
-      this.$nextTick(function () {
-        this.$refs.inputNumber.focus();
+      if (!this.canAdd) {
+        this.$message({
+          showClose: true,
+          message: "你还未被分配班级，无法添加课题！",
+          duration: 1500,
+          type: "error",
+        });
+      } else {
+        this.isShow = true;
+        this.inputs = this.maxNumber;
+        this.$nextTick(function () {
+          this.$refs.inputNumber.focus();
+        });
+      }
+    },
+    async editMax(number) {
+      await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/clazz/update`, {
+            params: {
+              id: this.classes,
+              groupMax: number,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
       });
     },
     changeMax() {
@@ -149,12 +176,18 @@ export default {
       } else {
         this.maxNumber = this.inputs;
         this.isShow = false;
+        this.editMax(this.inputs);
+        this.$message({
+          showClose: true,
+          message: "修改成功！",
+          duration: 1500,
+          type: "success",
+        });
       }
     },
     handleEdit(row) {
       this.topic = { ...row };
-      this.dialogVisible = true;
-      console.log(this.topic);
+      this.dialogVisible1 = true;
     },
     handleDelete(row) {
       this.$confirm("确定删除吗？", "提示", {
@@ -163,7 +196,7 @@ export default {
         type: "warning",
       })
         .then(() => {
-          console.log(row);
+          this.deleteTopic(row);
           this.$message({
             type: "success",
             showClose: true,
@@ -188,14 +221,175 @@ export default {
       let year = date.getFullYear();
       let month = date.getMonth() + 1;
       if (month > 3 && month < 9) {
-        this.date = year + "-" + (year + 1) + "第一学期";
-      } else {
         this.date = year - 1 + "-" + year + "第二学期";
+      } else {
+        this.date = year + "-" + (year + 1) + "第一学期";
       }
+    },
+    async getUser(classId) {
+      let findMaxNumber = await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/clazz/list`, {
+            params: {
+              id: classId.classId,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      this.maxNumber = findMaxNumber.data.data[0].groupMax;
+      //console.log(this.maxNumber);
+      //console.log(findMaxNumber);
+    },
+    add() {
+      if (this.canAdd) {
+        this.addTopic();
+      } else {
+        this.$message({
+          showClose: true,
+          message: "你还未被分配班级，无法添加课题！",
+          duration: 1500,
+          type: "error",
+        });
+      }
+    },
+    addTopic() {
+      if (this.topic.name === "" || this.topic.content === "") {
+        this.$message({
+          showClose: true,
+          message: "请填写完整信息！",
+          duration: 1500,
+          type: "error",
+        });
+      } else {
+        new Promise((resolve, reject) => {
+          this.$axios
+            .get(`/topic/save`, {
+              params: {
+                id: Math.floor(Math.random() * 10000000),
+                name: this.topic.name,
+                content: this.topic.content,
+                classId: this.classes,
+                teacherId: this.classId.id,
+                time: this.date,
+              },
+            })
+            .then((res) => {
+              this.dialogVisible = false;
+              this.getTopic();
+              resolve(res);
+            })
+            .catch((err) => {
+              reject(err);
+            });
+        });
+      }
+      this.clearContent();
+    },
+    async getTopic() {
+      let topic = await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/topic/list`, {
+            params: {
+              teacherId: this.classId.id,
+              status: 1,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      this.tableData = topic.data.data;
+      //console.log(topic);
+    },
+    changeTopic() {
+      if (this.topic.name === "" || this.topic.content === "") {
+        this.$message({
+          showClose: true,
+          message: "请填写完整信息！",
+          duration: 1500,
+          type: "error",
+        });
+      } else {
+        console.log(this.topic);
+        new Promise((resolve, reject) => {
+          this.$axios
+            .get(`/topic/update`, {
+              params: {
+                id: this.topic.id,
+                name: this.topic.name,
+                content: this.topic.content,
+              },
+            })
+            .then((res) => {
+              console.log(res);
+              this.dialogVisible1 = false;
+              this.getTopic();
+              this.$message({
+                showClose: true,
+                message: "修改成功",
+                duration: 1500,
+                type: "success",
+              });
+              resolve(res);
+            })
+            .catch((err) => {
+              this.$message({
+                showClose: true,
+                message: "修改失败",
+                duration: 1500,
+                type: "error",
+              });
+              reject(err);
+            });
+        });
+      }
+      this.clearContent();
+    },
+    deleteTopic(row) {
+      console.log(row.id);
+      new Promise((resolve, reject) => {
+        this.$axios
+          .request({
+            url: "/topic/delete",
+            method: "get",
+            params: {
+              id: row.id,
+            },
+          })
+          .then((res) => {
+            this.getTopic();
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
     },
   },
   mounted() {
+    let classId = JSON.parse(localStorage.getItem("res"));
+    this.classId = classId;
+    console.log(classId.classId);
+    if (classId.classId === 0) {
+      this.canAdd = false;
+    } else {
+      this.classes = classId.classId;
+    }
     this.getTime();
+    console.log(classId);
+    if (classId.classId !== 0) {
+      this.getTopic();
+      this.getUser(classId);
+    }
+    console.log(this.canAdd);
   },
 };
 </script>

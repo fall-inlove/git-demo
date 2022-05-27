@@ -18,7 +18,9 @@
             <i class="el-icon-location backgroup"></i>
             <span>老师界面</span>
           </template>
-          <el-menu-item index="/main/teacherone">任务分配</el-menu-item>
+          <el-menu-item index="/main/teacherone" v-if="isShow"
+            >任务分配</el-menu-item
+          >
           <el-menu-item index="/main/teachertwo">我的课题</el-menu-item>
           <el-menu-item index="/main/teacherthree">我的班级</el-menu-item>
           <el-menu-item index="1-4">选项4</el-menu-item>
@@ -53,6 +55,8 @@ export default {
     return {
       active: "/main/studentone",
       isStudent: false,
+      isShow: false,
+      res: {},
     };
   },
   methods: {
@@ -62,6 +66,33 @@ export default {
     handleClose(key, keyPath) {
       console.log(key, keyPath);
     },
+    //获取当前用户班级id
+    async findClassId() {
+      let result = JSON.parse(localStorage.getItem("res"));
+      this.res = result;
+      await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/teacher/list`, {
+            params: {
+              id: result.id,
+            },
+          })
+          .then((res) => {
+            this.res = res.data.data[0];
+            if (res.data.data[0].type == 1) {
+              this.isShow = true;
+              this.active = "/main/teacherone";
+            } else {
+              this.active = "/main/teachertwo";
+            }
+            this.$router.push(this.active);
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
   },
   mounted() {
     if (localStorage.getItem("people") === "true") {
@@ -69,11 +100,12 @@ export default {
     }
     //this.$nextTick(() => {
     if (!this.isStudent) {
-      this.active = "/main/teacherone";
+      this.findClassId();
     } else {
       this.active = "/main/studentone";
+      this.$router.push(this.active);
     }
-    this.$router.push(this.active);
+
     //});
     console.log(this.active);
   },

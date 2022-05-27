@@ -39,41 +39,10 @@ export default {
   name: "TeacherPageThree",
   data() {
     return {
-      tableData: [
-        {
-          id: "19201501",
-          name: "张三",
-          title: "计算机网络",
-        },
-        {
-          id: "19201502",
-          name: "李四",
-          title: "分布式数据库",
-        },
-        {
-          id: "19201503",
-          name: "王五",
-          title: "计算机网络",
-        },
-      ],
-      group: [
-        {
-          id: "123456789",
-          name: "张三",
-          status: "组长",
-        },
-        {
-          id: "123456789",
-          name: "李四",
-          status: "组员",
-        },
-        {
-          id: "123456789",
-          name: "王五",
-          status: "组员",
-        },
-      ],
+      tableData: [],
+      group: [],
       dialogVisible: false,
+      res: {},
     };
   },
   methods: {
@@ -81,6 +50,48 @@ export default {
       this.dialogVisible = true;
       console.log(index, row);
     },
+    //获取当前用户班级id
+    async findClassId() {
+      let result = JSON.parse(localStorage.getItem("res"));
+      this.res = result;
+      await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/teacher/list`, {
+            params: {
+              id: result.id,
+            },
+          })
+          .then((res) => {
+            this.res = res.data.data[0];
+            this.getAllGroup();
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //获取所有的小组信息
+    getAllGroup() {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/team/list`, {
+            params: {
+              classId: this.res.classId,
+            },
+          })
+          .then((res) => {
+            this.tableData = res.data.data;
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+  },
+  mounted() {
+    this.findClassId();
   },
 };
 </script>

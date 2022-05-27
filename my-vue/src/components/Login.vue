@@ -6,7 +6,7 @@
           <i class="el-icon-user user">:</i>
           账号：<input
             placeholder="请输入账号(学号）"
-            v-model="count"
+            v-model="account"
             class="input"
             type="text"
             ref="inputCount"
@@ -79,7 +79,7 @@ export default {
   name: "PeopleLogin",
   data() {
     return {
-      count: "",
+      account: "",
       password: "",
       checkStudent: true,
       checkTeacher: false,
@@ -93,17 +93,46 @@ export default {
     };
   },
   methods: {
-    Check() {
-      if (this.count === "") {
+    async Check() {
+      if (this.account === "") {
         this.isshowc = true;
       } else if (this.password === "") {
         this.isshowpa = true;
       } else {
-        if (this.count === "admin" && this.password === "123456") {
+        let res = await new Promise((resolve, reject) => {
+          this.$axios
+            .get(`/${this.checkStudent ? "student" : "teacher"}/login`, {
+              params: {
+                account: this.account,
+                password: this.password,
+              },
+            })
+            .then((res) => {
+              resolve(res);
+            })
+            .catch((err) => {
+              reject(err);
+            });
+        });
+        //console.log(res);
+        localStorage.setItem("res", JSON.stringify(res.data.data));
+        if (res.data.data === null) {
+          this.$message({
+            showClose: true,
+            message: "账号或者密码错误！",
+            duration: 1500,
+            type: "error",
+          });
+          this.account = "";
+          this.password = "";
+        } else if (
+          this.account === res.data.data.account &&
+          this.password === res.data.data.password
+        ) {
           this.isshow = false;
 
           let p = {
-            count: this.count,
+            account: this.account,
             password: this.password,
           };
           localStorage.setItem("user", JSON.stringify(p));
@@ -117,7 +146,7 @@ export default {
             type: "success",
           });
           setTimeout(() => {
-            this.$router.push({ path: "/main" });
+            this.$router.push({ path: `/main` });
           }, 1000);
         } else {
           this.$message({
@@ -126,15 +155,15 @@ export default {
             duration: 1500,
             type: "error",
           });
-          this.count = "";
+          this.account = "";
           this.password = "";
         }
       }
       //console.log(this._data);
     },
     changeCount() {
-      this.count = this.count.replace(" ", "");
-      if (this.count != "") {
+      this.account = this.account.replace(" ", "");
+      if (this.account != "") {
         this.isshowc = false;
       }
     },
@@ -152,7 +181,7 @@ export default {
       this.checkRemember = !this.checkRemember;
     },
     clear() {
-      this.count = "";
+      this.account = "";
     },
     openSee() {
       if (this.isopen) {
@@ -169,7 +198,7 @@ export default {
       this.checkRemember = true;
       if (localStorage.getItem("user")) {
         let p = JSON.parse(localStorage.getItem("user"));
-        this.count = p.count;
+        this.account = p.account;
         this.password = p.password;
       }
       if (localStorage.getItem("people") === "false") {

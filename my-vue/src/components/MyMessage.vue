@@ -12,7 +12,7 @@
           <el-tab-pane label="基本资料" name="first">
             <div class="one">
               <div class="mymessage">
-                <span>账号:</span><span>{{ user.count }}</span>
+                <span>账号:</span><span>{{ user.account }}</span>
               </div>
               <div class="mymessage">
                 <span>姓名:</span><span>{{ user.name }}</span>
@@ -72,7 +72,7 @@
                 style="width: 30vw"
               ></el-input
               ><span style="color: red; margin-left: 10px"
-                >*密码必须在8-16位之间,区分大小写</span
+                >*密码必须在6-10位之间,区分大小写</span
               >
               <br />
               <span class="span">确认新密码</span>
@@ -111,15 +111,15 @@ export default {
       user: {
         imageUrl: require("../assets/images/women.png"),
         name: "赵子龙",
-        count: "19201524",
-        password: "19201524",
-        class: "192015",
-        group: null,
+        account: "19201524",
+        password: "",
+        id: "",
       },
       status: "",
     };
   },
   methods: {
+    //预览功能实现
     inputValue() {
       if (this.input2 == "") {
         this.$message({
@@ -131,6 +131,7 @@ export default {
         this.input2 = this.input;
       }
     },
+    //修改头像
     changeImg() {
       if (this.input !== "") {
         this.user.imageUrl = this.input;
@@ -149,11 +150,13 @@ export default {
         });
       }
     },
+    //当图片无法正常显示时，显示默认图片
     defaultImg(event) {
       const img = event.srcElement;
       img.src = require("../assets/images/onerror.png");
       img.onerror = null;
     },
+    //修改密码
     changePassword() {
       if (this.password1 == "") {
         this.$message({
@@ -180,7 +183,7 @@ export default {
           type: "error",
         });
         this.password1 = this.password2 = this.password3 = "";
-      } else if (this.password2.length < 8 || this.password2.length > 16) {
+      } else if (this.password2.length < 6 || this.password2.length > 10) {
         this.$message({
           duration: 1500,
           message: "新密码的长度必须在8-16位之间,请重新输入。",
@@ -202,18 +205,59 @@ export default {
         });
         this.password1 = this.password2 = this.password3 = "";
       } else {
-        this.$message({
-          duration: 1500,
-          message: "密码修改成功,请重新登录。",
-          type: "success",
-        });
-        sessionStorage.removeItem("user");
-        this.$router.push({ path: "/" });
+        console.log(this.user.id, this.password2);
+        this.$axios
+          .get(`/${this.status ? "student" : "teacher"}/update`, {
+            params: {
+              id: this.user.id,
+              password: this.password2,
+            },
+          })
+          .then((res) => {
+            this.$message({
+              duration: 1500,
+              message: "密码修改成功,请重新登录。",
+              type: "success",
+            });
+            sessionStorage.removeItem("user");
+            this.$router.push({ path: "/" });
+            console.log(res);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       }
+    },
+    //获取用户信息
+    async getUser() {
+      let user = JSON.parse(localStorage.getItem("user"));
+      let checkStudent = JSON.parse(localStorage.getItem("people"));
+      let res = await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/${checkStudent ? "student" : "teacher"}/login`, {
+            params: {
+              account: user.account,
+              password: user.password,
+            },
+          })
+          .then((res) => {
+            this.user.name = res.data.data.name;
+            this.user.account = res.data.data.account;
+            this.user.password = res.data.data.password;
+            this.user.id = res.data.data.id;
+            console.log(this.user.id);
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      return res;
     },
   },
   mounted() {
     this.status = JSON.parse(localStorage.getItem("people")); //true为学生，false为老师
+    this.getUser();
   },
 };
 </script>

@@ -16,7 +16,7 @@
       <el-table-column type="index" width="100" label="标号"> </el-table-column>
       <el-table-column prop="name" label="姓名" width="230"> </el-table-column>
       <el-table-column prop="id" label="学号" width="230"> </el-table-column>
-      <el-table-column prop="address" label="职位"></el-table-column>
+      <el-table-column prop="type" label="职位"></el-table-column>
       <el-table-column>
         <template slot-scope="scope">
           <el-button
@@ -29,13 +29,14 @@
       </el-table-column>
     </el-table>
     <router-link to="/main/studenttwo" class="router-link" v-if="isCheck"
-      >还未选题，去选题</router-link
+      >还未选题? 去选题</router-link
     >
     <el-dialog title="请选择" :visible.sync="dialogVisible" width="50%">
       <el-input
         placeholder="输入学号,点击enter搜索"
         v-model="findGroup"
         class="in-enter"
+        @keyup.enter.native="findGroupFun"
       />
       <el-table
         :data="tableDatas"
@@ -46,26 +47,15 @@
         max-height="250px"
         :default-sort="{ prop: 'class', order: 'ascending' }"
       >
-        <el-table-column type="selection" width="55"> </el-table-column>
-        <el-table-column prop="id" label="学号" width="200"> </el-table-column>
-        <el-table-column prop="name" label="姓名" width="200">
-        </el-table-column>
-        <el-table-column fixed="right" label="操作" width="200">
-          <template slot-scope="scope">
-            <el-button
-              type="primary"
-              size="small"
-              @click="getTeacher(scope.row)"
-              >选择</el-button
-            >
-          </template>
-        </el-table-column>
+        <el-table-column type="selection" width="100"> </el-table-column>
+        <el-table-column prop="id" label="学号"> </el-table-column>
+        <el-table-column prop="name" label="姓名"> </el-table-column>
       </el-table>
       <div class="table-bottom">
         <span style="margin-left: 10px"
           >已选{{ nums }}人/最大可选{{ maxNumber - 1 }}</span
         >
-        <el-button type="primary">添加</el-button>
+        <el-button type="primary" @click="createGroup">添加</el-button>
       </div>
     </el-dialog>
   </div>
@@ -76,66 +66,87 @@ export default {
   name: "StudentPageOne",
   data() {
     return {
-      tableData: [
-        {
-          name: "张三",
-          id: "123456789",
-          address: "组长",
-        },
-        {
-          name: "李四",
-          id: "987654321",
-          address: "组员",
-        },
-        {
-          name: "王五",
-          id: "87654321",
-          address: "组员",
-        },
-      ],
-      tableDatas: [
-        {
-          name: "张1",
-          id: "1234567891",
-        },
-        {
-          name: "李2",
-          id: "9876543212",
-        },
-        {
-          name: "王3",
-          id: "876543213",
-        },
-        {
-          name: "张4",
-          id: "1234567894",
-        },
-        {
-          name: "李5",
-          id: "9876543215",
-        },
-        {
-          name: "王6",
-          id: "876543216",
-        },
-      ],
+      tableData: [],
+      tableDatas: [],
       tip: require("../assets/images/nogroup.png"),
       isShow: false,
       isAdd: false,
       dialogVisible: false,
       findGroup: "",
       nums: 0,
+      res: {},
       maxNumber: 5,
       multipleSelection: [],
       isCheck: true,
     };
   },
   methods: {
+    // 添加小组
     addGroup() {
-      this.dialogVisible = true;
-      this.isShow = false;
-      this.nums = 0;
+      if (this.maxNumber === 0) {
+        this.$message({
+          type: "error",
+          showClose: true,
+          duration: 1500,
+          message: "老师还没有设置人数限制，请稍后再开始组队！",
+        });
+      } else {
+        this.dialogVisible = true;
+        //this.isShow = false;
+        this.nums = 0;
+        this.findAllStudent();
+      }
     },
+    //创建小组，并将选择的学生添加到小组中
+    createGroup() {
+      this.setHeader();
+      this.isShow = false;
+      this.multipleSelection.forEach((item) => {
+        //console.log(item.id, this.res.id);
+        this.changeGroupId(item.id, this.res.id);
+      });
+      this.changeGroupId(this.res.id, this.res.id);
+      this.findIsAdd();
+      this.isCheck = true;
+      this.dialogVisible = false;
+    },
+    //创建小组，将创建者设置为小组长
+    setHeader() {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/team/save`, {
+            params: {
+              id: this.res.id,
+              headerId: this.res.id,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //改变小组成员的groupId
+    changeGroupId(id, groupId) {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/student/update`, {
+            params: {
+              id,
+              groupId,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //选择改变触发
     handleSelectionChange(val) {
       this.multipleSelection = val;
       this.nums = this.multipleSelection.length;
@@ -149,10 +160,10 @@ export default {
         this.$refs.multipleTable.toggleRowSelection(
           this.multipleSelection[this.nums - 1]
         );
-        //this.multipleSelection.pop();
         console.log(this.multipleSelection);
       }
     },
+    //全选
     selectAll() {
       if (this.tableDatas.length > this.maxNumber) {
         this.$message({
@@ -167,6 +178,173 @@ export default {
         });
       }
     },
+    //搜索所有本班可供选择的学生
+    findAllStudent() {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get("/student/list", {
+            params: {
+              classId: this.res.classId,
+              groupId: -1,
+            },
+          })
+          .then((res) => {
+            console.log(this.res.account);
+
+            this.tableDatas = res.data.data;
+            this.tableDatas.forEach((row, index) => {
+              if (row.account === this.res.account) {
+                this.tableDatas.splice(index, 1);
+              }
+            });
+
+            console.log(this.tableDatas);
+            resolve();
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //搜索所有组内成员
+    findGroupMember() {
+      console.log(this.res.groupId);
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get("/student/list", {
+            params: {
+              groupId: this.res.groupId,
+            },
+          })
+          .then((res) => {
+            console.log("000", res.data.data);
+            for (let i = 0; i < res.data.data.length; i++) {
+              this.tableData.push(res.data.data[i]);
+              if (this.tableData[i].id == this.res.groupId) {
+                this.tableData[i].type = "组长";
+              } else {
+                this.tableData[i].type = "组员";
+              }
+            }
+            resolve();
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //查询组员数量限制数据
+    findMaxNumber() {
+      //console.log(this.res.classId);
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/clazz/list`, {
+            params: {
+              id: this.res.classId,
+            },
+          })
+          .then((res) => {
+            this.maxNumber = res.data.data[0].groupMax;
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //获取当前用户groupId
+    async findGroupId() {
+      await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/student/list`, {
+            params: {
+              id: this.res.id,
+            },
+          })
+          .then((res) => {
+            this.res = res.data.data[0];
+            this.res.groupId = res.data.data[0].groupId;
+            this.findGroupMember();
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //判断是否加入小组,如果已经加入小组则执行搜索成员操作,如果没有加入小组则查询组员数量限制数据
+    async findIsAdd() {
+      let result = JSON.parse(localStorage.getItem("res"));
+      this.res = result;
+      let res = await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/student/list`, {
+            params: {
+              id: result.id,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      //console.log(res.data.data);
+      if (res.data.data[0].groupId === -1) {
+        this.isAdd = true;
+        this.isShow = true;
+        this.isCheck = false;
+        this.findMaxNumber();
+      } else {
+        this.findGroupId();
+        this.isSetele();
+        this.isAdd = false;
+        this.isShow = false;
+      }
+    },
+    //判断是否选择过课题
+    isSetele() {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/topic/list`, {
+            params: {
+              teamId: this.res.groupId,
+              status: 1,
+            },
+          })
+          .then((res) => {
+            if (res.data.data.length > 0) {
+              this.isCheck = false;
+            }
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //添加组员
+    addPeople() {
+      let arr = [];
+      this.tableDatas.forEach((item) => {
+        if (item.account === this.findGroup) {
+          arr.push(item);
+        }
+      });
+      this.tableDatas = arr;
+    },
+    //搜索单人
+    findGroupFun() {
+      if (this.findGroup === "") {
+        this.findAllStudent();
+      } else {
+        this.addPeople();
+      }
+    },
+  },
+  mounted() {
+    this.findIsAdd();
   },
 };
 </script>
@@ -188,7 +366,7 @@ export default {
   height: 100%;
   display: flex;
   margin-top: 100px;
-  justify-content: center;
+
   align-items: center;
   flex-direction: column;
   text-align: center;

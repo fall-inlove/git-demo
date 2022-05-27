@@ -104,8 +104,31 @@ export default {
     SeeMessage() {
       this.$router.push({ path: "/main/message" });
     },
+    async getUser() {
+      let user = JSON.parse(localStorage.getItem("user"));
+      let checkStudent = JSON.parse(localStorage.getItem("people"));
+      let res = await new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/${checkStudent ? "student" : "teacher"}/login`, {
+            params: {
+              account: user.account,
+              password: user.password,
+            },
+          })
+          .then((res) => {
+            this.user.name = res.data.data.name;
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      return res;
+    },
   },
-  mounted() {},
+  mounted() {
+    this.getUser();
+  },
 };
 </script>
 

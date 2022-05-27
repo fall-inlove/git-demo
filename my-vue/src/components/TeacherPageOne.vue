@@ -4,7 +4,7 @@
       :data="tableData"
       border
       style="width: 100%; height: 90%"
-      :default-sort="{ prop: 'class', order: 'ascending' }"
+      :default-sort="{ prop: 'id', order: 'ascending' }"
     >
       <el-table-column
         fixed
@@ -13,16 +13,13 @@
         width="100"
         height="500px"
       ></el-table-column>
-      <el-table-column prop="class" label="班级" width="150"></el-table-column>
+      <el-table-column prop="id" label="班级" width="150"></el-table-column>
       <el-table-column label="时间" width="250">{{ time }}</el-table-column>
-      <el-table-column prop="number" label="人数" width="150"></el-table-column>
+      <el-table-column prop="amount" label="人数" width="150"></el-table-column>
       <el-table-column prop="object" label="科目" width="200"></el-table-column>
       <el-table-column fixed="right" width="250" align="center">
-        <template slot="header">
-          <el-input v-model="searchInput" placeholder="输入关键字搜索" />
-        </template>
         <template slot-scope="scope">
-          <el-button type="primary" size="small" @click="handleClick(scope.row)"
+          <el-button type="primary" size="small" @click="hand(scope.row)"
             >分配</el-button
           >
         </template>
@@ -43,10 +40,10 @@
     </div>
     <el-dialog title="请选择" :visible.sync="dialogVisible" width="50%">
       <el-table
-        :data="tableData"
+        :data="teacherData"
         border
         style="width: 100%; height: 90%"
-        :default-sort="{ prop: 'class', order: 'ascending' }"
+        :default-sort="{ prop: 'index', order: 'ascending' }"
       >
         <el-table-column
           fixed
@@ -54,23 +51,19 @@
           label="编号"
           width="100"
         ></el-table-column>
+        <el-table-column prop="id" label="教师号" width="150"></el-table-column>
         <el-table-column
-          prop="class"
-          label="老师"
+          prop="name"
+          label="教师姓名"
           width="150"
         ></el-table-column>
         <el-table-column label="时间" width="200">{{ time }}</el-table-column>
-        <el-table-column
-          prop="object"
-          label="科目"
-          width="150"
-        ></el-table-column>
         <el-table-column fixed="right" label="操作" width="100">
           <template slot-scope="scope">
             <el-button
               type="primary"
               size="small"
-              @click="getTeacher(scope.row)"
+              @click="handleClick(scope.row)"
               >选择</el-button
             >
           </template>
@@ -85,23 +78,8 @@ export default {
   name: "TeacherPageOne",
   data() {
     return {
-      tableData: [
-        {
-          class: "192015",
-          number: 32,
-          object: "前端",
-        },
-        {
-          class: "192015",
-          number: 32,
-          object: "java",
-        },
-        {
-          class: "192015",
-          number: 32,
-          object: "软件构造",
-        },
-      ],
+      tableData: [],
+      teacherData: [],
       pagination: {
         currentPage: 1,
         pageSize: 5,
@@ -125,26 +103,129 @@ export default {
       this.getData();
     },
     handleClick(row) {
+      //console.log(this.currentClass.id);
+      //console.log(row);
+      let res = new Promise((reslove, reject) => {
+        this.$axios
+          .get("/teacher/update", {
+            params: { id: row.id, classId: this.currentClass.id },
+          })
+          .then((res) => {
+            reslove(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      let re = new Promise((reslove, reject) => {
+        this.$axios
+          .get("/clazz/update", {
+            params: { id: this.currentClass.id, type: 2 },
+          })
+          .then((res) => {
+            reslove(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      this.$confirm("确定选择吗？", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          res.then((res) => {
+            this.getTeacher();
+            this.dialogVisible = false;
+            console.log(res);
+          });
+          re.then(() => {
+            this.getData();
+          });
+          this.$message({
+            type: "success",
+            showClose: true,
+            duration: 1500,
+            message: "选择成功！",
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "error",
+            showClose: true,
+            duration: 1500,
+            message: "已取消！",
+          });
+        });
+    },
+    hand(row) {
       this.currentClass = row;
       this.dialogVisible = true;
+      this.getTeacher();
     },
-    getTeacher(row) {
-      console.log(row);
-      this.dialogVisible = false;
+    getTeacher() {
+      let res = new Promise((resolve, reject) => {
+        this.$axios
+          .get("/teacher/list", {
+            params: {
+              classId: 0,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      res.then((res) => {
+        //console.log(res);
+        this.teacherData = res.data.data;
+      });
     },
+    //获取本地时间
     getTime() {
       let date = new Date();
       let year = date.getFullYear();
       let month = date.getMonth() + 1;
       if (month > 3 && month < 9) {
-        this.time = year + "-" + (year + 1) + "第一学期";
+        this.time = year - 1 + "-" + year + "第二学期";
       } else {
-        return year - 1 + "-" + year + "第二学期";
+        this.time = year + "-" + (year + 1) + "第一学期";
       }
+    },
+    //获取班级数据
+    getData() {
+      let object = ["前端", "java", "软件构造"];
+      let res = new Promise((resolve, reject) => {
+        this.$axios
+          .get("/clazz/list", {
+            params: {
+              type: 1,
+            },
+          })
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+      res.then((res) => {
+        //console.log(res);
+        let data = res.data.data;
+        data.forEach((item) => {
+          item.object = object[(data.length - 1) % 3];
+        });
+        this.tableData = data;
+        this.pagination.total = res.data.data.length;
+      });
     },
   },
   mounted() {
     this.getTime();
+    this.getData();
   },
 };
 </script>
