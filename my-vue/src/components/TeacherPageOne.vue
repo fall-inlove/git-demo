@@ -169,7 +169,7 @@ export default {
         this.$axios
           .get("/teacher/list", {
             params: {
-              classId: 0,
+              classId: -1,
             },
           })
           .then((res) => {

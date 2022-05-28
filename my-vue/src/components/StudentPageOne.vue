@@ -22,6 +22,7 @@
           <el-button
             size="mini"
             type="primary"
+            :style="canClick(scope.row)"
             @click="handleEdit(scope.$index, scope.row)"
             >联系</el-button
           >
@@ -81,6 +82,14 @@ export default {
     };
   },
   methods: {
+    canClick(row) {
+      if (row.id === this.res.id) {
+        return "display:none";
+      }
+    },
+    handleEdit(index, row) {
+      console.log(index, row.id, this.res.id);
+    },
     // 添加小组
     addGroup() {
       if (this.maxNumber === 0) {
@@ -292,29 +301,34 @@ export default {
       });
       //console.log(res.data.data);
       if (res.data.data[0].groupId === -1) {
-        this.isAdd = true;
-        this.isShow = true;
-        this.isCheck = false;
+        //未加入小组
+        this.isAdd = true; //显示加入按钮
+        this.isShow = true; //显示图片
+        this.isCheck = false; //不显示选题按钮
         this.findMaxNumber();
       } else {
+        console.log(res.data.data[0].groupId);
         this.findGroupId();
-        this.isSetele();
+        this.isSetele(res.data.data[0].groupId);
         this.isAdd = false;
         this.isShow = false;
       }
     },
     //判断是否选择过课题
-    isSetele() {
+    isSetele(groupId) {
+      console.log(this.res.groupId);
       new Promise((resolve, reject) => {
         this.$axios
           .get(`/topic/list`, {
             params: {
-              teamId: this.res.groupId,
+              teamId: groupId,
               status: 1,
             },
           })
           .then((res) => {
+            console.log(res.data.data);
             if (res.data.data.length > 0) {
+              //this.isShow = false;
               this.isCheck = false;
             }
             resolve(res);

@@ -53,9 +53,11 @@ export default {
             params: {
               classId: this.res.classId,
               status: 1,
+              teamId: -1,
             },
           })
           .then((res) => {
+            console.log(2323, res.data.data);
             resolve(res);
           })
           .catch((err) => {

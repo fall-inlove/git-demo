@@ -2,18 +2,15 @@
   <div class="contrain">
     <el-table :data="tableData" style="width: 90%; margin: 2% 5%">
       <el-table-column type="index"> </el-table-column>
-      <el-table-column prop="id" label="组长学号" width="180">
+      <el-table-column prop="teamId" label="组长学号" width="180">
       </el-table-column>
-      <el-table-column prop="name" label="组长姓名" width="180">
+      <el-table-column prop="student.name" label="组长姓名" width="180">
       </el-table-column>
-      <el-table-column prop="title" label="课题名称" width="520">
+      <el-table-column prop="name" label="课题名称" width="520">
       </el-table-column>
       <el-table-column>
         <template slot-scope="scope">
-          <el-button
-            type="primary"
-            size="mini"
-            @click="handleEdit(scope.$index, scope.row)"
+          <el-button type="primary" size="mini" @click="handleEdit(scope.row)"
             >查看</el-button
           >
         </template>
@@ -28,7 +25,7 @@
         <el-table-column fixed type="index" width="80"></el-table-column>
         <el-table-column prop="id" label="学号"></el-table-column>
         <el-table-column prop="name" label="姓名"></el-table-column>
-        <el-table-column prop="status" label="职务"></el-table-column>
+        <el-table-column prop="type" label="职务"></el-table-column>
       </el-table>
     </el-dialog>
   </div>
@@ -46,9 +43,10 @@ export default {
     };
   },
   methods: {
-    handleEdit(index, row) {
+    handleEdit(row) {
       this.dialogVisible = true;
-      console.log(index, row);
+      console.log(row);
+      this.findGroupMember(row);
     },
     //获取当前用户班级id
     async findClassId() {
@@ -63,7 +61,7 @@ export default {
           })
           .then((res) => {
             this.res = res.data.data[0];
-            this.getAllGroup();
+            this.getTopicDetail();
             resolve(res);
           })
           .catch((err) => {
@@ -71,11 +69,37 @@ export default {
           });
       });
     },
-    //获取所有的小组信息
-    getAllGroup() {
+    //搜索所有组内成员
+    findGroupMember(row) {
       new Promise((resolve, reject) => {
         this.$axios
-          .get(`/team/list`, {
+          .get("/student/list", {
+            params: {
+              groupId: row.teamId,
+            },
+          })
+          .then((res) => {
+            console.log("000", res.data.data);
+            for (let i = 0; i < res.data.data.length; i++) {
+              this.group.push(res.data.data[i]);
+              if (this.group[i].id == row.teamId) {
+                this.group[i].type = "组长";
+              } else {
+                this.group[i].type = "组员";
+              }
+            }
+            resolve();
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+    //查看小组信息
+    getTopicDetail() {
+      new Promise((resolve, reject) => {
+        this.$axios
+          .get(`/topicDetail/list`, {
             params: {
               classId: this.res.classId,
             },
