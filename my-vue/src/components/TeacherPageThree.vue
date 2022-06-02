@@ -71,6 +71,7 @@ export default {
     },
     //搜索所有组内成员
     findGroupMember(row) {
+      this.group = [];
       new Promise((resolve, reject) => {
         this.$axios
           .get("/student/list", {

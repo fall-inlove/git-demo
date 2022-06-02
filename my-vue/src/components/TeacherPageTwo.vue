@@ -247,7 +247,7 @@ export default {
     },
     add() {
       if (this.canAdd) {
-        this.addTopic();
+        this.dialogVisible = true;
       } else {
         this.$message({
           showClose: true,
@@ -276,6 +276,7 @@ export default {
                 classId: this.classes,
                 teacherId: this.classId.id,
                 time: this.date,
+                teamId: -1,
               },
             })
             .then((res) => {
